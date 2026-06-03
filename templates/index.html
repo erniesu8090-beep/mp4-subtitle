@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity 字幕嵌入大師</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="glass-bg"></div>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1 class="logo-text">ANTIGRAVITY <span>字幕嵌入大師</span></h1>
+            <p class="subtitle-text">極速、高清、可客製化的影片字幕處理工具</p>
+        </header>
+
+        <!-- Main Dashboard Card -->
+        <main class="dashboard-card">
+            <!-- File Selection Section -->
+            <section class="section file-section">
+                <h2 class="section-title">1. 選擇檔案與路徑</h2>
+                
+                <div class="input-group">
+                    <label for="video-path">來源影片</label>
+                    <div class="file-picker-wrapper">
+                        <input type="text" id="video-path" placeholder="請點擊右側按鈕選擇影片檔案..." readonly>
+                        <button type="button" class="btn btn-secondary" onclick="selectFile('video')">選擇影片</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="srt-path">SRT 字幕檔案</label>
+                    <div class="file-picker-wrapper">
+                        <input type="text" id="srt-path" placeholder="請點擊右側按鈕選擇字幕檔案..." readonly>
+                        <button type="button" class="btn btn-secondary" onclick="selectFile('srt')">選擇字幕</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="output-path">儲存影片至</label>
+                    <div class="file-picker-wrapper">
+                        <input type="text" id="output-path" placeholder="請點擊右側按鈕設定輸出路徑..." readonly>
+                        <button type="button" class="btn btn-secondary" onclick="selectFile('output')">儲存路徑</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mode Selection Section -->
+            <section class="section mode-section">
+                <h2 class="section-title">2. 嵌入模式</h2>
+                <div class="mode-cards">
+                    <div class="mode-card active" onclick="setMode('hard')" id="mode-hard-card">
+                        <div class="mode-card-header">
+                            <span class="mode-badge hard-badge">強烈推薦</span>
+                            <h3>內嵌硬字幕 (Burn-in)</h3>
+                        </div>
+                        <p class="mode-description">
+                            將字幕直接「燒錄」進影片畫面中。轉檔速度取決於 CPU/GPU 效能，但輸出檔案相容性 100%，可在所有手機、電視及網頁播放器正常顯示。
+                        </p>
+                    </div>
+                    <div class="mode-card" onclick="setMode('soft')" id="mode-soft-card">
+                        <div class="mode-card-header">
+                            <span class="mode-badge soft-badge">極速</span>
+                            <h3>封裝軟字幕 (Muxing)</h3>
+                        </div>
+                        <p class="mode-description">
+                            將字幕以獨立軌道形式「包裝」進影片檔內。無須重新編碼影片，<b>僅需 1~2 秒即可完成</b>，且畫質毫無損耗。播放時可由播放器隨時開啟或關閉字幕（需要播放器支援字幕軌）。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Subtitle Styling Options (Only relevant for hardburn) -->
+            <section class="section style-section" id="style-options-section">
+                <h2 class="section-title">3. 字幕樣式自訂 <span class="help-tip">(僅套用於硬字幕)</span></h2>
+                
+                <div class="style-grid">
+                    <!-- Left: Controls -->
+                    <div class="style-controls">
+                        <div class="input-group style-item">
+                            <label for="font-name">字體名稱</label>
+                            <select id="font-name" class="custom-select" onchange="updatePreview()">
+                                <option value="Microsoft JhengHei" selected>微軟正黑體 (Microsoft JhengHei)</option>
+                                <option value="PMingLiU">新細明體 (PMingLiU)</option>
+                                <option value="Arial">Arial</option>
+                                <option value="sans-serif">Sans-Serif (系統預設)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group style-item">
+                            <label for="font-size">字體大小 (像素)</label>
+                            <select id="font-size" class="custom-select" onchange="updatePreview()">
+                                <option value="12">12 px (極小)</option>
+                                <option value="14">14 px (小)</option>
+                                <option value="16" selected>16 px (標準)</option>
+                                <option value="18">18 px (偏大)</option>
+                                <option value="20">20 px (大)</option>
+                                <option value="24">24 px (極大)</option>
+                                <option value="28">28 px (超大)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group style-item">
+                            <label for="font-color">字體顏色</label>
+                            <select id="font-color" class="custom-select" onchange="updatePreview()">
+                                <option value="white" selected>白色 (White)</option>
+                                <option value="yellow">黃色 (Yellow)</option>
+                                <option value="cyan">青藍色 (Cyan)</option>
+                                <option value="red">紅色 (Red)</option>
+                                <option value="green">綠色 (Green)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group style-item">
+                            <label for="bg-style">背景樣式</label>
+                            <select id="bg-style" class="custom-select" onchange="updatePreview()">
+                                <option value="outline" selected>描邊 + 陰影 (預設)</option>
+                                <option value="opaque">黑色背景條 (Opaque Box)</option>
+                                <option value="none">無 (純文字)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group style-item">
+                            <label for="margin-v">底部邊距 (Margin V)
+                                <span class="value-display" id="margin-v-val">20 px</span>
+                            </label>
+                            <input type="range" id="margin-v" min="5" max="100" value="20" class="custom-slider" oninput="document.getElementById('margin-v-val').textContent = this.value + ' px'; updatePreview();">
+                        </div>
+                    </div>
+
+                    <!-- Right: Subtitle Preview Area -->
+                    <div class="style-preview">
+                        <label class="preview-label">樣式即時預覽</label>
+                        <div class="preview-video-box">
+                            <div class="preview-sub-text" id="preview-text">這是一段預覽字幕範例 (Subtitle Preview)</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Execution Action Panel -->
+            <div class="action-panel">
+                <button type="button" class="btn btn-primary btn-glow" id="start-btn" onclick="startProcess()">
+                    開始嵌入字幕
+                </button>
+            </div>
+
+            <!-- Progress & Logs Panel (Hidden by default, shown during/after processing) -->
+            <section class="section progress-section" id="progress-panel" style="display: none;">
+                <h2 class="section-title">4. 處理進度與日誌</h2>
+                
+                <div class="progress-container">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <span class="progress-percent" id="progress-percent">0.0%</span>
+                        <div class="stat-items">
+                            <span class="stat-item">速度: <strong id="stat-speed">0x</strong></span>
+                            <span class="stat-item">幀率: <strong id="stat-fps">0</strong></span>
+                            <span class="stat-item">已處理時間: <strong id="stat-time">00:00:00</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status alert messages -->
+                <div class="status-alert" id="status-message" style="display: none;"></div>
+
+                <!-- Open folder action (shown only on completion) -->
+                <div class="completion-actions" id="completion-actions" style="display: none;">
+                    <p class="success-text">🎉 影片處理完成！已成功嵌入字幕。</p>
+                    <button type="button" class="btn btn-success" onclick="openOutputFolder()">
+                        打開檔案所在資料夾
+                    </button>
+                </div>
+
+                <!-- Live Log Terminal -->
+                <div class="terminal-wrapper">
+                    <div class="terminal-header">
+                        <span class="terminal-dot red"></span>
+                        <span class="terminal-dot yellow"></span>
+                        <span class="terminal-dot green"></span>
+                        <span class="terminal-title">FFmpeg 即時控制台日誌</span>
+                    </div>
+                    <div class="terminal-body" id="log-console">
+                        <div class="log-line system-line">[系統] 等待任務啟動...</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>Antigravity Subtitle Embedder &bull; Powered by Flask, FFmpeg & Python</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
