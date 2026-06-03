@@ -190,10 +190,34 @@ def select_file():
     # Tkinter is safe when constructed and destroyed in the same call.
     file_path = ask_file_dialog(mode, default_name)
     
-    return jsonify({
+    response_data = {
         'path': file_path,
         'name': os.path.basename(file_path) if file_path else ''
-    })
+    }
+    
+    # If a video is selected, check for matching srt files in the same directory
+    if mode == 'video' and file_path:
+        try:
+            video_dir = os.path.dirname(file_path)
+            base_name, _ = os.path.splitext(os.path.basename(file_path))
+            
+            # Common Traditional/Simplified Chinese and English subtitle naming patterns
+            suffixes = ['', '.zh', '.zho', '.tw', '.cht', '.tc', '.traditional', '.chi', '.en']
+            
+            found_srt = ""
+            for suffix in suffixes:
+                candidate = os.path.join(video_dir, base_name + suffix + '.srt')
+                if os.path.exists(candidate):
+                    found_srt = candidate
+                    break
+            
+            if found_srt:
+                response_data['auto_srt_path'] = found_srt
+                response_data['auto_srt_name'] = os.path.basename(found_srt)
+        except Exception as e:
+            print("Error scanning for matching srt:", e)
+            
+    return jsonify(response_data)
 
 @app.route('/api/start', methods=['POST'])
 def start_embedding():

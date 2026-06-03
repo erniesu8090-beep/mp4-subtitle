@@ -50,6 +50,13 @@ async function selectFile(mode) {
                     suggestedOutput = result.path + '_sub.mp4';
                 }
                 outputPathInput.value = suggestedOutput;
+
+                // Automatically fill the subtitle path if a matching SRT file is found
+                if (result.auto_srt_path) {
+                    document.getElementById('srt-path').value = result.auto_srt_path;
+                    document.getElementById('progress-panel').style.display = 'block';
+                    logToConsole(`[系統] 已自動偵測並載入同資料夾的字幕檔案：${result.auto_srt_name}`, 'success-line');
+                }
             } else if (mode === 'srt') {
                 document.getElementById('srt-path').value = result.path;
             } else if (mode === 'output') {
