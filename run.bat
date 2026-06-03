@@ -17,6 +17,18 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
+:: Check if Flask is installed, install it if missing
+python -c "import flask" >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [INFO] Flask is not installed. Installing Flask automatically...
+    pip install flask
+    if %errorlevel% neq 0 (
+        echo [ERROR] Failed to install Flask automatically. Please install it manually: pip install flask
+        pause
+        exit /b
+    )
+)
+
 :: Start Flask application
 python app.py
 
