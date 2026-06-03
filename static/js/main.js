@@ -40,18 +40,16 @@ async function selectFile(mode) {
             if (mode === 'video') {
                 document.getElementById('video-path').value = result.path;
                 
-                // Automatically suggest an output path if it's empty
+                // Automatically suggest and update the output path based on source video name
                 const outputPathInput = document.getElementById('output-path');
-                if (!outputPathInput.value) {
-                    const lastDot = result.path.lastIndexOf('.');
-                    let suggestedOutput = '';
-                    if (lastDot !== -1) {
-                        suggestedOutput = result.path.substring(0, lastDot) + '_sub' + result.path.substring(lastDot);
-                    } else {
-                        suggestedOutput = result.path + '_sub.mp4';
-                    }
-                    outputPathInput.value = suggestedOutput;
+                const lastDot = result.path.lastIndexOf('.');
+                let suggestedOutput = '';
+                if (lastDot !== -1) {
+                    suggestedOutput = result.path.substring(0, lastDot) + '_sub' + result.path.substring(lastDot);
+                } else {
+                    suggestedOutput = result.path + '_sub.mp4';
                 }
+                outputPathInput.value = suggestedOutput;
             } else if (mode === 'srt') {
                 document.getElementById('srt-path').value = result.path;
             } else if (mode === 'output') {
