@@ -129,6 +129,13 @@
                             </label>
                             <input type="range" id="margin-v" min="5" max="100" value="20" class="custom-slider" oninput="document.getElementById('margin-v-val').textContent = this.value + ' px'; updatePreview();">
                         </div>
+
+                        <div class="input-group style-item checkbox-item" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 12px; display: flex;">
+                            <input type="checkbox" id="hd-optimize" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-cyan);">
+                            <label for="hd-optimize" style="margin-bottom: 0; cursor: pointer; user-select: none; font-size: 0.85rem; font-weight: 500; display: inline-block;">
+                                啟用清晰字幕優化 <span class="help-tip" style="color: var(--accent-cyan); font-size: 0.75rem; font-weight: normal; display: inline;">(自動將低解析度影片升頻至 1080p 以獲得銳利字幕)</span>
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Right: Subtitle Preview Area -->

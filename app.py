@@ -43,6 +43,27 @@ def get_video_duration(video_path):
         print("Error reading video duration:", e)
         return None
 
+def get_video_resolution(video_path):
+    """Get the video width and height using ffprobe."""
+    try:
+        cmd = [
+            'ffprobe',
+            '-v', 'error',
+            '-select_streams', 'v:0',
+            '-show_entries', 'stream=width,height',
+            '-of', 'json',
+            video_path
+        ]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        info = json.loads(result.stdout)
+        if 'streams' in info and len(info['streams']) > 0:
+            width = info['streams'][0].get('width')
+            height = info['streams'][0].get('height')
+            return int(width), int(height)
+    except Exception as e:
+        print("Error reading video resolution:", e)
+    return None, None
+
 def escape_subtitle_path(path):
     """
     Escape the subtitle file path for FFmpeg subtitles filter on Windows.
@@ -239,6 +260,7 @@ def start_embedding():
     bg_style = data.get('bg_style', 'outline') # 'outline', 'opaque', 'none'
     margin_v = data.get('margin_v', '20')
     font_name = data.get('font_name', 'Microsoft JhengHei')
+    hd_optimize = data.get('hd_optimize', False)
     
     if not video_path or not srt_path or not output_path:
         return jsonify({'success': False, 'message': '請填寫所有路徑。'})
@@ -257,9 +279,24 @@ def start_embedding():
     # Build FFmpeg command
     cmd = ['ffmpeg', '-y', '-i', video_path]
     
+    upscale_log_msg = ""
     if mode == 'hard':
         # Escape srt path for filter
         escaped_srt = escape_subtitle_path(srt_path)
+        
+        # Check if we should upscale for HD subtitle optimization
+        scale_filter = ""
+        if hd_optimize:
+            width, height = get_video_resolution(video_path)
+            if width and height:
+                if width >= height: # Landscape orientation
+                    if width < 1920:
+                        scale_filter = "scale=1920:-2:flags=lanczos,"
+                        upscale_log_msg = f"偵測到低解析度橫向影片 ({width}x{height})，啟用清晰字幕優化 (升頻至 1920x1080p)..."
+                else: # Portrait orientation (Vertical video)
+                    if height < 1920:
+                        scale_filter = "scale=-2:1920:flags=lanczos,"
+                        upscale_log_msg = f"偵測到低解析度縱向影片 ({width}x{height})，啟用清晰字幕優化 (升頻至 1080x1920p)..."
         
         # Color mapping (AABBGGRR - ASS style)
         color_map = {
@@ -283,7 +320,7 @@ def start_embedding():
             
         style_str = f"FontName={font_name},FontSize={font_size},PrimaryColour={ass_color},{border_style},MarginV={margin_v}"
         
-        filter_str = f"subtitles={escaped_srt}:force_style='{style_str}'"
+        filter_str = f"{scale_filter}subtitles={escaped_srt}:force_style='{style_str}'"
         
         # Add video encoding settings (libx264, standard fast parameters)
         cmd.extend([
@@ -319,7 +356,14 @@ def start_embedding():
         job_status['time'] = '00:00:00'
         job_status['total_duration'] = duration
         job_status['error_message'] = ''
-        job_status['log'] = [f'啟動處理任務...\n影片時間長度: {duration:.2f} 秒\n執行指令: {" ".join(cmd)}\n']
+        
+        # Build initial log list
+        init_logs = [f'啟動處理任務...\n影片時間長度: {duration:.2f} 秒\n']
+        if upscale_log_msg:
+            init_logs.append(f'[系統] {upscale_log_msg}\n')
+        init_logs.append(f'執行指令: {" ".join(cmd)}\n')
+        
+        job_status['log'] = init_logs
         job_status['output_path'] = output_path
         
     # Launch thread

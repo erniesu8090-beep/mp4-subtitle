@@ -152,32 +152,34 @@ async function startProcess() {
     logConsole.innerHTML = '';
     logToConsole('[系統] 正在驗證檔案並初始化編碼器...', 'system-line');
     
-    // Retrieve advanced style parameters
-    const fontName = document.getElementById('font-name').value;
-    const fontSize = document.getElementById('font-size').value;
-    const fontColor = document.getElementById('font-color').value;
-    const bgStyle = document.getElementById('bg-style').value;
-    const marginV = document.getElementById('margin-v').value;
-    
-    // Start request
-    try {
-        const response = await fetch('/api/start', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                video_path: videoPath,
-                srt_path: srtPath,
-                output_path: outputPath,
-                mode: currentMode,
-                font_name: fontName,
-                font_size: fontSize,
-                font_color: fontColor,
-                bg_style: bgStyle,
-                margin_v: marginV
-            })
-        });
-        
-        const result = await response.json();
+     // Retrieve advanced style parameters
+     const fontName = document.getElementById('font-name').value;
+     const fontSize = document.getElementById('font-size').value;
+     const fontColor = document.getElementById('font-color').value;
+     const bgStyle = document.getElementById('bg-style').value;
+     const marginV = document.getElementById('margin-v').value;
+     const hdOptimize = document.getElementById('hd-optimize').checked;
+     
+     // Start request
+     try {
+         const response = await fetch('/api/start', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+                 video_path: videoPath,
+                 srt_path: srtPath,
+                 output_path: outputPath,
+                 mode: currentMode,
+                 font_name: fontName,
+                 font_size: fontSize,
+                 font_color: fontColor,
+                 bg_style: bgStyle,
+                 margin_v: marginV,
+                 hd_optimize: hdOptimize
+             })
+         });
+         
+         const result = await response.json();
         
         if (!result.success) {
             logToConsole(`[系統錯誤] ${result.message}`, 'error-line');
