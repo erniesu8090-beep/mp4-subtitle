@@ -161,41 +161,54 @@ def run_ffmpeg_process(cmd, total_duration):
 def ask_file_dialog(mode, default_name=""):
     """
     Trigger native Tkinter file picker dialog.
-    Runs Tkinter dialog dynamically and safely.
+    Spawns Tkinter dialog in a separate Python process to ensure thread-safety
+    and prevent freezing in multi-threaded Flask requests on Windows.
     """
-    import tkinter as tk
-    from tkinter import filedialog
-    
-    # We must run it in a hidden window
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes("-topmost", True)
-    
-    result_path = ""
+    # Inline python code to execute
+    code = """
+import sys
+import tkinter as tk
+from tkinter import filedialog
+
+root = tk.Tk()
+root.withdraw()
+root.attributes("-topmost", True)
+
+mode = sys.argv[1]
+default_name = sys.argv[2] if len(sys.argv) > 2 else ""
+
+path = ""
+try:
+    if mode == 'video':
+        path = filedialog.askopenfilename(
+            title="選擇影片檔案",
+            filetypes=[("影片檔案 (*.mp4, *.mkv, *.avi, *.mov)", "*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm"), ("所有檔案 (*.*)", "*.*")]
+        )
+    elif mode == 'srt':
+        path = filedialog.askopenfilename(
+            title="選擇字幕檔案",
+            filetypes=[("SRT 字幕檔案 (*.srt)", "*.srt"), ("所有檔案 (*.*)", "*.*")]
+        )
+    elif mode == 'output':
+        path = filedialog.asksaveasfilename(
+            title="選擇儲存路徑",
+            initialfile=default_name,
+            filetypes=[("MP4 影片 (*.mp4)", "*.mp4"), ("MKV 影片 (*.mkv)", "*.mkv"), ("所有檔案 (*.*)", "*.*")],
+            defaultextension=".mp4"
+        )
+except Exception as e:
+    pass
+
+print(path)
+"""
     try:
-        if mode == 'video':
-            result_path = filedialog.askopenfilename(
-                title="選擇影片檔案",
-                filetypes=[("影片檔案 (*.mp4, *.mkv, *.avi, *.mov)", "*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm"), ("所有檔案 (*.*)", "*.*")]
-            )
-        elif mode == 'srt':
-            result_path = filedialog.askopenfilename(
-                title="選擇字幕檔案",
-                filetypes=[("SRT 字幕檔案 (*.srt)", "*.srt"), ("所有檔案 (*.*)", "*.*")]
-            )
-        elif mode == 'output':
-            result_path = filedialog.asksaveasfilename(
-                title="選擇儲存路徑",
-                initialfile=default_name,
-                filetypes=[("MP4 影片 (*.mp4)", "*.mp4"), ("MKV 影片 (*.mkv)", "*.mkv"), ("所有檔案 (*.*)", "*.*")],
-                defaultextension=".mp4"
-            )
+        # Run python in a subprocess
+        cmd = [sys.executable, '-c', code, mode, default_name]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        return result.stdout.strip()
     except Exception as e:
-        print("Tkinter Dialog error:", e)
-    finally:
-        root.destroy()
-        
-    return result_path
+        print("Error running file dialog subprocess:", e)
+        return ""
 
 @app.route('/')
 def index():
